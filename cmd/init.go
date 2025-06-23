@@ -127,9 +127,9 @@ var initCmd = &cobra.Command{
 		repo := Repo{}
 
 		if len(args) == 0 {
-			repo.worktree = "."
+			repo.worktree, _ = filepath.EvalSymlinks(".")
 		} else {
-			repo.worktree = args[0]
+			repo.worktree, _ = filepath.EvalSymlinks(args[0])
 		}
 
 		repo.gitdir = filepath.Join(repo.worktree, ".wannagit")
