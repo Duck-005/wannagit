@@ -27,7 +27,7 @@ func RepoFile(repo Repo, mkdir bool, path ...string) (string, error) {
 	if _, err := RepoDir(repo, mkdir, path[:len(path) - 1]...); err == nil {
 		return repoPath(repo, path...), nil
 	} else {
-		fmt.Print("\n4545454", err)
+		fmt.Print(err)
 	}
 	
 	return "", fmt.Errorf("couldn't make the repo path")
@@ -37,7 +37,6 @@ func RepoFile(repo Repo, mkdir bool, path ...string) (string, error) {
 func RepoDir(repo Repo, mkdir bool, path ...string) (string, error) {
 	
 	dirPath := repoPath(repo, path...)
-	fmt.Print(dirPath + "\n")
 
 	if stat, err := os.Stat(dirPath); err == nil {
 		if stat.IsDir() {
@@ -58,9 +57,9 @@ func createRepo(repo Repo) {
 	
 	if stat, err := os.Stat(repo.worktree); err == nil {
 		if !stat.IsDir() {
-			fmt.Errorf("Not a directory")
+			fmt.Print("Not a directory\n")
 		} else if stat.Size() != 0 {
-			fmt.Errorf("Directory is not empty %v", err)
+			fmt.Print("Directory is not empty: %v\n", err)
 		}
 	} else {
 		os.MkdirAll(repo.worktree, os.ModePerm)
@@ -68,7 +67,7 @@ func createRepo(repo Repo) {
 
 	errorHandler := func(err error) {
 		if err != nil {
-			fmt.Print("could'nt create repository", err)
+			fmt.Printf("could'nt create repository: %v\n", err)
 		}
 	}
 
