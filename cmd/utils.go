@@ -115,7 +115,7 @@ func RepoFind(path string, required bool) Repo {
 	return RepoFind(parent, required)
 }
 
-func errorHandler(customMsg string, err error) {
+func ErrorHandler(customMsg string, err error) {
 	if err != nil {
 		fmt.Printf(customMsg + ": ", err)
 	}
@@ -129,11 +129,11 @@ func ObjectRead(repo Repo, sha string) GitObject {
 	} 
 
 	file, err := os.Open(path)
-	errorHandler("could'nt open object file", err)
+	ErrorHandler("could'nt open object file", err)
 	defer file.Close()
 
 	zlibReader, err := zlib.NewReader(file)
-	errorHandler("could'nt create zlib reader", err)
+	ErrorHandler("could'nt create zlib reader", err)
 	defer zlibReader.Close() 
 
 	var decompressed bytes.Buffer
@@ -180,7 +180,7 @@ func ObjectWrite(obj GitObject, repo Repo) string {
 	path, _ := RepoFile(repo, true, sha[0:2], sha[2:]) 
 	if _, err := os.Stat(path); err != nil {
 		err = os.WriteFile(path, result, os.ModePerm)
-		errorHandler("could'nt write object to file", err)
+		ErrorHandler("could'nt write object to file", err)
 	}
 
 	return sha

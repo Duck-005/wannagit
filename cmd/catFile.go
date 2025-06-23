@@ -11,7 +11,7 @@ func ObjectFind(repo Repo, name string, objectType string, follow bool) string {
 }
 	
 var catFileCmd = &cobra.Command{
-	Use:   "catFile <type> <object>",
+	Use:   "catFile TYPE OBJECT_HASH",
 	Short: "prints the raw uncompressed object data to stdout",
 	Long: `prints the raw uncompressed object data to stdout without the wannagit header`,
 	Run: func(cmd *cobra.Command, args []string) {

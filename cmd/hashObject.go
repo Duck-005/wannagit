@@ -1,40 +1,59 @@
-/*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/spf13/cobra"
 )
 
-// hashObjectCmd represents the hashObject command
-var hashObjectCmd = &cobra.Command{
-	Use:   "hashObject",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+func objectHash(repo Repo, file *os.File, format string) string {
+	data, _ := io.ReadAll(file)
+	
+	var obj GitObject
+	switch format {
+		case "commit": obj = &GitCommit{}
+		case "tree": obj = &GitTree{}
+		case "tag": obj = &GitTag{}
+		case "blob": obj = &GitBlob{}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+		default: fmt.Printf("Unknown type format %v", format)
+	}
+
+	obj.Deserialize(string(data))
+
+	return ObjectWrite(obj, repo)
+}
+
+var hashObjectCmd = &cobra.Command{
+	Use:   "hashObject [-w] [-t TYPE] FILE",
+	Short: "create hash-object",
+	Long: `create the hash-object for a particular file and 
+	write it to the git directory optionally`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("hashObject called")
+		format, _ := cmd.Flags().GetString("type")
+		write, _ := cmd.Flags().GetBool("write")
+
+		var repo Repo
+		if write {
+			repo = RepoFind(".", true)
+		} else {
+			repo = Repo{}
+		}
+
+		file, err := os.Open(args[0])
+		ErrorHandler(fmt.Sprintf("Invalid path %v", args[0]), err)
+
+		sha := objectHash(repo, file, format)
+		fmt.Print(sha)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(hashObjectCmd)
+	hashObjectCmd.PersistentFlags().String("t", "", "gives the type for the object specified")
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// hashObjectCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// hashObjectCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	hashObjectCmd.Flags().StringP("type", "t", "blob", "gives the type of object")
+	hashObjectCmd.Flags().BoolP("write", "w", false, "writes the object to wannagit directory")
 }
