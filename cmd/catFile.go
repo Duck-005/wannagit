@@ -18,6 +18,10 @@ var catFileCmd = &cobra.Command{
 		repo := RepoFind(".", true)
 		obj := ObjectRead(repo, ObjectFind(repo, args[1], args[0], true))
 
+		if obj == nil {
+			return
+		}
+
 		fmt.Printf(obj.Serialize())
 	},
 }

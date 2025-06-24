@@ -3,12 +3,12 @@ package cmd
 import (
 	"bytes"
 	"compress/zlib"
-	"io"
-	"strconv"
 	"crypto/sha1"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 type GitObject interface {
@@ -129,26 +129,42 @@ func ObjectRead(repo Repo, sha string) GitObject {
 	} 
 
 	file, err := os.Open(path)
-	ErrorHandler("could'nt open object file", err)
+	if err != nil {
+		ErrorHandler("could'nt open object file", err)
+		return nil
+	}
 	defer file.Close()
 
 	zlibReader, err := zlib.NewReader(file)
-	ErrorHandler("could'nt create zlib reader", err)
+	if err != nil {
+		ErrorHandler("could'nt create zlib reader", err)
+		return nil
+	}
 	defer zlibReader.Close() 
 
 	var decompressed bytes.Buffer
-	io.Copy(&decompressed, zlibReader)
+	_, err = io.Copy(&decompressed, zlibReader)
+	if err != nil {
+		ErrorHandler("failed to decompress object", err)
+		return nil
+	}
 
 	rawSlice := decompressed.Bytes()
 
 	spaceIdx := bytes.IndexByte(rawSlice, ' ')
 	nullIdx := bytes.IndexByte(rawSlice, 0)
 
+	if spaceIdx == -1 || nullIdx == -1 {
+		fmt.Printf("Malformed object %v: missing header format\n", sha)
+		return nil
+	}
+
 	format := string(rawSlice[0:spaceIdx])
 	size, _ := strconv.Atoi(string(rawSlice[spaceIdx+1:nullIdx]))
 
 	if size != len(rawSlice) - nullIdx - 1 {
 		fmt.Printf("malformed object %v: bad length", sha)
+		return nil
 	}
 	
 	var obj GitObject
@@ -168,7 +184,7 @@ func ObjectRead(repo Repo, sha string) GitObject {
 func ObjectWrite(obj GitObject, repo Repo) string {
 	data := obj.Serialize()
 
-	result := []byte(obj.Format() + " " + strconv.Itoa(len(data)) + "\x00" + data)
+	result := []byte(obj.Format() + " " + strconv.Itoa(len(data)) + "\x00" + string(data))
 
 	hash := sha1.Sum(result)
 	sha := fmt.Sprintf("%x", hash[:])
@@ -177,9 +193,14 @@ func ObjectWrite(obj GitObject, repo Repo) string {
 		return sha
 	}
 
-	path, _ := RepoFile(repo, true, sha[0:2], sha[2:]) 
+	path, _ := RepoFile(repo, true, "objects", sha[0:2], sha[2:]) 
 	if _, err := os.Stat(path); err != nil {
-		err = os.WriteFile(path, result, os.ModePerm)
+		var buf bytes.Buffer
+		writer := zlib.NewWriter(&buf)
+		writer.Write(result)
+		writer.Close()
+
+		err = os.WriteFile(path, buf.Bytes(), os.ModePerm)
 		ErrorHandler("could'nt write object to file", err)
 	}
 

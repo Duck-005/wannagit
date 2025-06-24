@@ -9,7 +9,8 @@ import (
 )
 
 func objectHash(repo Repo, file *os.File, format string) string {
-	data, _ := io.ReadAll(file)
+	data, err := io.ReadAll(file)
+	ErrorHandler("couldnt open file for creating object: ", err)
 	
 	var obj GitObject
 	switch format {
