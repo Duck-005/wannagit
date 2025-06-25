@@ -41,7 +41,8 @@ func logGraphviz(repo Repo, sha string, seenSet map[string]bool) {
 var logCmd = &cobra.Command{
 	Use:   "log COMMIT_HASH",
 	Short: "review logging of commit data and its metadata",
-	Long: `review the different commits along with their information like the authors, time stamps etc.`,
+	Long: `review the different commits along with their information like the authors, time stamps etc.
+	use dot -O -Tpdf log.dot to generate a pdf of the commit tree`,
 	Run: func(cmd *cobra.Command, args []string) {
 		repo := RepoFind(".", true)
 
