@@ -27,6 +27,10 @@ func (b *BaseGitObject) Format() string {
 	return b.format
 }
 
+// func (b *BaseGitObject) getData() string {
+// 	return b.data
+// }
+ 
 // GitCommit -----------------------------------
 
 type GitCommit struct {
@@ -42,6 +46,10 @@ func (b *GitCommit) Deserialize(data string) {
 	b.data = ParseKVLM([]byte(data))
 	b.format = "commit"
 } 
+
+func (b *GitCommit) GetData() map[string][]string {
+	return b.data
+}
 
 // GitTree ------------------------------------
 
@@ -124,7 +132,8 @@ func ErrorHandler(customMsg string, err error) {
 }
 
 func ObjectRead(repo Repo, sha string) GitObject {
-	path, _ := RepoFile(repo, false, "objects", sha[:2], sha[2:])
+	path, err := RepoFile(repo, false, "objects", sha[:2], sha[2:])
+	ErrorHandler("couldn't fetch object file", err)
 
 	if stat, _ := os.Stat(path); !stat.Mode().IsRegular() {
 		fmt.Printf("Not a valid object file: %v", sha)
@@ -157,7 +166,7 @@ func ObjectRead(repo Repo, sha string) GitObject {
 	nullIdx := bytes.IndexByte(rawSlice, 0)
 
 	if spaceIdx == -1 || nullIdx == -1 {
-		fmt.Printf("Malformed object %v: missing header format\n", sha)
+		fmt.Printf("Malformed object %v: missing header format", sha)
 		return nil
 	}
 

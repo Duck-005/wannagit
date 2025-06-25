@@ -7,6 +7,9 @@ import (
 )
 
 func ObjectFind(repo Repo, name string, objectType string, follow bool) string {
+	if objectType == "" {
+		objectType = "blob"
+	}
 	return name
 }
 	

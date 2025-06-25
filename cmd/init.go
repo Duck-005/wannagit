@@ -37,7 +37,7 @@ func RepoFile(repo Repo, mkdir bool, path ...string) (string, error) {
 func RepoDir(repo Repo, mkdir bool, path ...string) (string, error) {
 	
 	dirPath := repoPath(repo, path...)
-
+	
 	if stat, err := os.Stat(dirPath); err == nil {
 		if stat.IsDir() {
 			return dirPath, nil
@@ -59,7 +59,7 @@ func createRepo(repo Repo) {
 		if !stat.IsDir() {
 			fmt.Print("Not a directory\n")
 		} else if stat.Size() != 0 {
-			fmt.Print("Directory is not empty: %v\n", err)
+			fmt.Printf("Directory is not empty: %v\n", err)
 		}
 	} else {
 		os.MkdirAll(repo.worktree, os.ModePerm)
