@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"sort"
-	"strings"
 )
 
 // GitTree ------------------------------------
@@ -16,7 +14,8 @@ type GitTree struct {
 }
 
 func (b *GitTree) Serialize() string {
-	return treeSerialize(b)
+	return string(treeSerialize(b)) 
+	// returns bytes in the form of string NOT READABLE
 }
 
 func (b *GitTree) Deserialize(data string) {
@@ -29,10 +28,10 @@ func (b *GitTree) Deserialize(data string) {
 type GitTreeLeaf struct {
 	mode string
 	path string
-	sha string
+	sha []byte
 }
 
-func NewGitTreeLeaf(mode string, path string, sha string) *GitTreeLeaf {
+func NewGitTreeLeaf(mode string, path string, sha []byte) *GitTreeLeaf {
 	return &GitTreeLeaf {
 		mode: mode,
 		path: path,
@@ -43,21 +42,28 @@ func NewGitTreeLeaf(mode string, path string, sha string) *GitTreeLeaf {
 // helper functions ----------------------------
 
 func treeParseLeaf(raw []byte, start int) (position int, node GitTreeLeaf){
-	spaceIdx := bytes.IndexByte(raw, ' ')
+	spaceIdx := bytes.IndexByte(raw[start:], ' ')
+	if spaceIdx == -1 {
+		panic("invalid tree: no space found")
+	}
+	spaceIdx += start
 
-	if spaceIdx-start != 5 || spaceIdx-start != 6 {
+	if spaceIdx-start != 5 && spaceIdx-start != 6 {
 		fmt.Printf("invalid tree node\n")
 	}
 
 	mode := string(raw[start:spaceIdx])
-	if len(mode) == 5 {
-		mode = "0" + mode
+	
+	nullIdx := bytes.IndexByte(raw[spaceIdx+1:], 0x00)
+	if nullIdx == -1 {
+		panic("invalid tree: no null byte found")
 	}
+	nullIdx += spaceIdx + 1
 
-	nullIdx := bytes.IndexByte(raw, '\x00')
 	path := string(raw[spaceIdx+1:nullIdx])
 
-	sha := hex.EncodeToString(raw[nullIdx+1 : nullIdx+21])
+	var sha []byte
+	copy(sha[:], raw[nullIdx+1:nullIdx+21])
 
 	return nullIdx+21, *NewGitTreeLeaf(mode, path, sha)
 }
@@ -67,43 +73,27 @@ func ParseTree(raw []byte) []GitTreeLeaf {
 	max := len(raw)
 
 	var ret []GitTreeLeaf
-	var data GitTreeLeaf
+	var node GitTreeLeaf
 
-	for {
-		if pos < max {
-			pos, data = treeParseLeaf(raw, pos)
-			ret = append(ret, data)
-		} else {
-			break
-		}
+	for pos < max {
+		pos, node = treeParseLeaf(raw, pos)
+		ret = append(ret, node)
 	}
 
 	return ret
 }
 
-func convertPath(mode string) string {
-	if strings.HasPrefix(mode, "10") {
-		return mode
-	} else {
-		return mode + "\\"
-	}
-}
-
-func treeSerialize(obj *GitTree) string {
+func treeSerialize(obj *GitTree) []byte {
 	sort.Slice(obj.items, func(i, j int) bool {
-		mode_i := convertPath(obj.items[i].mode)
-		mode_j := convertPath(obj.items[j].mode)
-		return mode_i < mode_j
+		return obj.items[i].path < obj.items[j].path
 	})
 
-	var ret string
+	var ret []byte
 	for _, node := range obj.items {
-		ret += node.mode
-		ret += " "
-		ret += node.path
-		ret += "\x00"
-		sha := fmt.Sprintf("%x", node.sha)
-		ret += sha
+		entry := fmt.Sprintf("%s %s", node.mode, node.path)
+		ret = append(ret, []byte(entry)...)
+		ret = append(ret, 0x00)
+		ret = append(ret, node.sha[:]...)
 	}
 	return ret
 }
