@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"sort"
 )
@@ -28,10 +29,10 @@ func (b *GitTree) Deserialize(data string) {
 type GitTreeLeaf struct {
 	mode string
 	path string
-	sha []byte
+	sha string
 }
 
-func NewGitTreeLeaf(mode string, path string, sha []byte) *GitTreeLeaf {
+func NewGitTreeLeaf(mode string, path string, sha string) *GitTreeLeaf {
 	return &GitTreeLeaf {
 		mode: mode,
 		path: path,
@@ -62,8 +63,8 @@ func treeParseLeaf(raw []byte, start int) (position int, node GitTreeLeaf){
 
 	path := string(raw[spaceIdx+1:nullIdx])
 
-	var sha []byte
-	copy(sha[:], raw[nullIdx+1:nullIdx+21])
+	rawSha := raw[nullIdx+1 : nullIdx+21]
+	sha := hex.EncodeToString(rawSha[:])
 
 	return nullIdx+21, *NewGitTreeLeaf(mode, path, sha)
 }
@@ -93,7 +94,12 @@ func treeSerialize(obj *GitTree) []byte {
 		entry := fmt.Sprintf("%s %s", node.mode, node.path)
 		ret = append(ret, []byte(entry)...)
 		ret = append(ret, 0x00)
-		ret = append(ret, node.sha[:]...)
+
+		rawSha, err := hex.DecodeString(node.sha)
+		if err != nil {
+			panic("invalid SHA in tree leaf: " + node.sha)
+		}
+		ret = append(ret, rawSha...)
 	}
 	return ret
 }

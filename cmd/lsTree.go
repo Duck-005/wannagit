@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"encoding/hex"
 	"fmt"
 	"path"
-
 	"github.com/spf13/cobra"
 )
 
@@ -36,9 +34,9 @@ func lsTree(repo Repo, ref string, recursive bool, prefix string)  {
 		}
 
 		if recursive && typ == "tree" {
-			lsTree(repo, hex.EncodeToString(item.sha[:]), recursive, path.Join(prefix, item.path))
+			lsTree(repo, item.sha, recursive, path.Join(prefix, item.path))
 		} else {
-			fmt.Printf("%06s %v %v\t%v\n", item.mode, typ, hex.EncodeToString(item.sha[:]), path.Join(prefix, item.path))
+			fmt.Printf("%06s %v %v\t%v\n", item.mode, typ, sha, path.Join(prefix, item.path))
 		}
 	}
 }
