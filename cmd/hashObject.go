@@ -53,7 +53,6 @@ var hashObjectCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(hashObjectCmd)
-	hashObjectCmd.PersistentFlags().String("t", "", "gives the type for the object specified")
 
 	hashObjectCmd.Flags().StringP("type", "t", "blob", "gives the type of object")
 	hashObjectCmd.Flags().BoolP("write", "w", false, "writes the object to wannagit directory")
