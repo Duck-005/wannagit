@@ -28,7 +28,10 @@ func tagCreate(repo utils.Repo, name string, ref string, createObject bool) {
 }
 
 func createRef(repo utils.Repo, refName string, sha string) {
-	file, err := os.OpenFile(utils.RepoFile(repo, true, "refs/" + refName))
+	path, err := utils.RepoFile(repo, true, "refs/" + refName)
+	utils.ErrorHandler("couldn't create ref object file", err)
+
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	utils.ErrorHandler("couldn't create tag object", err)
 
 	file.WriteString(sha + "\n")
