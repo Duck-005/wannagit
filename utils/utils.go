@@ -53,7 +53,7 @@ func (b *GitTag) Deserialize(data string) {
 	b.format = "tag"
 }
 
-// helper functions -------------------------------------------------
+//--------------------------------------------------
 
 func RepoFind(path string, required bool) Repo {
 	path, _ = filepath.EvalSymlinks(path)

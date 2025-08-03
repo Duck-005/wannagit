@@ -8,11 +8,7 @@ import (
 	"io"
 	"os"
 	"strconv"
-
-	// "github.com/Duck-005/wannagit/cmd"
 )
-
-
 
 func ObjectRead(repo Repo, sha string) GitObject {
 	path, err := RepoFile(repo, false, "objects", sha[:2], sha[2:])
