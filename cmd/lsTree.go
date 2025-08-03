@@ -49,6 +49,11 @@ var lsTreeCmd = &cobra.Command{
 	Long: `use -r switch to recursively print all the object files, i.e no tree objects
 	only blobs.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) < 1 {
+			fmt.Print("Usage: lsTree [-r] TREE_HASH")
+			return 
+		}
+
 		recursive, _ := cmd.Flags().GetBool("recursive")
 
 		repo := utils.RepoFind(".", true)

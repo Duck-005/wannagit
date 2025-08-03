@@ -34,6 +34,11 @@ var hashObjectCmd = &cobra.Command{
 	Long: `create the hash-object for a particular file and 
 	write it to the git directory optionally`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) < 1 {
+			fmt.Print("Usage: hashObject [-w] [-t TYPE] FILE")
+			return
+		}
+
 		format, _ := cmd.Flags().GetString("type")
 		write, _ := cmd.Flags().GetBool("write")
 

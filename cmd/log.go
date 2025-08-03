@@ -46,6 +46,11 @@ var logCmd = &cobra.Command{
 	Long: `review the different commits along with their information like the authors, time stamps etc.
 	use dot -O -Tpdf log.dot to generate a pdf of the commit tree`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) < 1 {
+			fmt.Print("Usage: log COMMIT_HASH")
+			return 
+		}
+
 		repo := utils.RepoFind(".", true)
 
 		fmt.Print("digraph wannagitLog{\n")
