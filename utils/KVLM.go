@@ -1,4 +1,4 @@
-package cmd
+package utils
 
 import (
 	"fmt"
@@ -10,35 +10,20 @@ import (
 
 type GitCommit struct {
 	BaseGitObject
-	data map[string][]string
+	Data map[string][]string
 }
 
 func (b *GitCommit) Serialize() string {
-	return string(SerializeKVLM(b.data))
+	return string(SerializeKVLM(b.Data))
 }
 
 func (b *GitCommit) Deserialize(data string) {
-	b.data = ParseKVLM([]byte(data))
+	b.Data = ParseKVLM([]byte(data))
 	b.format = "commit"
 } 
 
 func (b *GitCommit) GetData() map[string][]string {
-	return b.data
-}
-
-// GitTag ----------------------------------------
-
-type GitTag struct {
-	BaseGitObject
-}
-
-func (b *GitTag) Serialize() string {
-	return b.data
-}
-
-func (b *GitTag) Deserialize(data string) {
-	b.data = data
-	b.format = "tag"
+	return b.Data
 }
 
 // helper functions -------------------------------

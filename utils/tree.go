@@ -1,4 +1,4 @@
-package cmd
+package utils
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 
 type GitTree struct {
 	BaseGitObject
-	items []GitTreeLeaf
+	Items []GitTreeLeaf
 }
 
 func (b *GitTree) Serialize() string {
@@ -20,23 +20,23 @@ func (b *GitTree) Serialize() string {
 }
 
 func (b *GitTree) Deserialize(data string) {
-	b.items = ParseTree([]byte(data))
+	b.Items = ParseTree([]byte(data))
 	b.format = "tree"
 }
 
 // tree leaf node --------------------------------
 
 type GitTreeLeaf struct {
-	mode string
-	path string
-	sha string
+	Mode string
+	Path string
+	Sha string
 }
 
 func NewGitTreeLeaf(mode string, path string, sha string) *GitTreeLeaf {
 	return &GitTreeLeaf {
-		mode: mode,
-		path: path,
-		sha: sha,
+		Mode: mode,
+		Path: path,
+		Sha: sha,
 	}
 }
 
@@ -85,19 +85,19 @@ func ParseTree(raw []byte) []GitTreeLeaf {
 }
 
 func treeSerialize(obj *GitTree) []byte {
-	sort.Slice(obj.items, func(i, j int) bool {
-		return obj.items[i].path < obj.items[j].path
+	sort.Slice(obj.Items, func(i, j int) bool {
+		return obj.Items[i].Path < obj.Items[j].Path
 	})
 
 	var ret []byte
-	for _, node := range obj.items {
-		entry := fmt.Sprintf("%s %s", node.mode, node.path)
+	for _, node := range obj.Items {
+		entry := fmt.Sprintf("%s %s", node.Mode, node.Path)
 		ret = append(ret, []byte(entry)...)
 		ret = append(ret, 0x00)
 
-		rawSha, err := hex.DecodeString(node.sha)
+		rawSha, err := hex.DecodeString(node.Sha)
 		if err != nil {
-			panic("invalid SHA in tree leaf: " + node.sha)
+			panic("invalid SHA in tree leaf: " + node.Sha)
 		}
 		ret = append(ret, rawSha...)
 	}

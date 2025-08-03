@@ -1,4 +1,4 @@
-package cmd
+package utils
 
 import (
 	"bytes"
@@ -7,74 +7,12 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strconv"
+
+	// "github.com/Duck-005/wannagit/cmd"
 )
 
-type GitObject interface {
-	Serialize() string
-	Deserialize(data string)
-	Format() string
-}
 
-type BaseGitObject struct {
-	data string
-	format string
-}
-
-func (b *BaseGitObject) Format() string {
-	return b.format
-}
-
-// GitBlob ----------------------------------------
-
-type GitBlob struct {
-	BaseGitObject
-}
-
-func (b *GitBlob) Serialize() string {
-	return b.data
-}
-
-func (b *GitBlob) Deserialize(data string) {
-	b.data = data
-	b.format = "blob"
-}
-
-// helper functions -------------------------------------------------
-
-func RepoFind(path string, required bool) Repo {
-	path, _ = filepath.EvalSymlinks(path)
-
-	if stat, _ := os.Stat(filepath.Join(path, ".wannagit")); stat.IsDir() {
-		return Repo {
-			worktree: path,
-			gitdir: filepath.Join(path, ".wannagit"),
-			conf: filepath.Join(path, ".wannagit", "config"),
-		}
-	}
-
-	parent, _ := filepath.EvalSymlinks(filepath.Join(path, ".."))
-
-	if parent == path {
-		// if parent == path then parent is root
-		// /.. --> / still root
-		if required {
-			fmt.Print("No git Directory\n")
-		} else {
-			return Repo {}
-		}
-	}
-
-	// recursively go back to find the .git folder
-	return RepoFind(parent, required)
-}
-
-func ErrorHandler(customMsg string, err error) {
-	if err != nil {
-		fmt.Printf(customMsg + "\nerror: ", err)
-	}
-}
 
 func ObjectRead(repo Repo, sha string) GitObject {
 	path, err := RepoFile(repo, false, "objects", sha[:2], sha[2:])
@@ -145,7 +83,7 @@ func ObjectWrite(obj GitObject, repo Repo) string {
 	hash := sha1.Sum(result)
 	sha := fmt.Sprintf("%x", hash[:])
 
-	if repo.gitdir == "" {
+	if repo.Gitdir == "" {
 		return sha
 	}
 

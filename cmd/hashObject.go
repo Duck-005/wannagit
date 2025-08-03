@@ -4,27 +4,28 @@ import (
 	"fmt"
 	"io"
 	"os"
-
+	
+	"github.com/Duck-005/wannagit/utils"
 	"github.com/spf13/cobra"
 )
 
-func objectHash(repo Repo, file *os.File, format string) string {
+func objectHash(repo utils.Repo, file *os.File, format string) string {
 	data, err := io.ReadAll(file)
-	ErrorHandler("couldnt open file for creating object: ", err)
+	utils.ErrorHandler("couldn't open file for creating object: ", err)
 	
-	var obj GitObject
+	var obj utils.GitObject
 	switch format {
-		case "commit": obj = &GitCommit{}
-		case "tree": obj = &GitTree{}
-		case "tag": obj = &GitTag{}
-		case "blob": obj = &GitBlob{}
+		case "commit": obj = &utils.GitCommit{}
+		case "tree": obj = &utils.GitTree{}
+		case "tag": obj = &utils.GitTag{}
+		case "blob": obj = &utils.GitBlob{}
 
 		default: fmt.Printf("Unknown type format %v", format)
 	}
 
 	obj.Deserialize(string(data))
 
-	return ObjectWrite(obj, repo)
+	return utils.ObjectWrite(obj, repo)
 }
 
 var hashObjectCmd = &cobra.Command{
@@ -36,15 +37,15 @@ var hashObjectCmd = &cobra.Command{
 		format, _ := cmd.Flags().GetString("type")
 		write, _ := cmd.Flags().GetBool("write")
 
-		var repo Repo
+		var repo utils.Repo
 		if write {
-			repo = RepoFind(".", true)
+			repo = utils.RepoFind(".", true)
 		} else {
-			repo = Repo{}
+			repo = utils.Repo{}
 		}
 
 		file, err := os.Open(args[0])
-		ErrorHandler(fmt.Sprintf("Invalid path %v", args[0]), err)
+		utils.ErrorHandler(fmt.Sprintf("Invalid path %v", args[0]), err)
 
 		sha := objectHash(repo, file, format)
 		fmt.Print(sha)

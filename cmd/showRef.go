@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+
+	"github.com/Duck-005/wannagit/utils"
 	"github.com/spf13/cobra"
 )
 
-func resolveRef(repo Repo, ref string) string {
-	path, err := RepoFile(repo, false, ref)
-	ErrorHandler("", err)
+func resolveRef(repo utils.Repo, ref string) string {
+	path, err := utils.RepoFile(repo, false, ref)
+	utils.ErrorHandler("", err)
 
 	stat, err := os.Stat(path)
 	if err != nil || !stat.Mode().IsRegular() {
@@ -18,7 +20,7 @@ func resolveRef(repo Repo, ref string) string {
 	}
 
 	dataSlice, err := os.ReadFile(path)
-	ErrorHandler("couldn't read ref file", err)
+	utils.ErrorHandler("couldn't read ref file", err)
 
 	data := strings.TrimSpace(string(dataSlice))
 
@@ -29,23 +31,23 @@ func resolveRef(repo Repo, ref string) string {
 	return data
 }
 
-func listRef(repo Repo, path string) map[string]any {
+func listRef(repo utils.Repo, path string) map[string]any {
 	var err error
 	var basePath string
 
 	if path == "" {
-		basePath, err = RepoDir(repo, false, "refs")
-		ErrorHandler("", err)
+		basePath, err = utils.RepoDir(repo, false, "refs")
+		utils.ErrorHandler("", err)
 		path = "refs"
 	} else {
-		basePath, err = RepoDir(repo, false, path)
-		ErrorHandler("", err)
+		basePath, err = utils.RepoDir(repo, false, path)
+		utils.ErrorHandler("", err)
 	}
 
 	refMap := make(map[string]any)
 
 	entries, err := os.ReadDir(basePath)
-	ErrorHandler("", err)
+	utils.ErrorHandler("", err)
 
 	for _, entry := range entries {
 		relativePath := filepath.Join(path, entry.Name())
@@ -59,7 +61,7 @@ func listRef(repo Repo, path string) map[string]any {
 	return refMap
 }
 
-func showRef(repo Repo, refs map[string]any, withHash bool, prefix string) {
+func showRef(repo utils.Repo, refs map[string]any, withHash bool, prefix string) {
 	if prefix != "" {
 		prefix += "/"
 	}
@@ -85,7 +87,7 @@ var showRefCmd = &cobra.Command{
 	Short: "shows all the references to commit files in the repository",
 	Long: `shows all the references to commit files in the repository recursively`,
 	Run: func(cmd *cobra.Command, args []string) {
-		repo := RepoFind(".", true)
+		repo := utils.RepoFind(".", true)
 		refs := listRef(repo, "")
 
 		showRef(repo, refs, true, "refs")

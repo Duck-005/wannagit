@@ -3,14 +3,16 @@ package cmd
 import (
 	"fmt"
 	"path"
+
+	"github.com/Duck-005/wannagit/utils"
 	"github.com/spf13/cobra"
 )
 
-func lsTree(repo Repo, ref string, recursive bool, prefix string)  {
+func lsTree(repo utils.Repo, ref string, recursive bool, prefix string)  {
 	sha := ObjectFind(repo, ref, "tree", false)
-	obj := ObjectRead(repo, sha)
+	obj := utils.ObjectRead(repo, sha)
 
-	tree, ok := obj.(*GitTree)
+	tree, ok := obj.(*utils.GitTree)
 	if !ok {
 		return
 	}
@@ -18,11 +20,11 @@ func lsTree(repo Repo, ref string, recursive bool, prefix string)  {
 	var typ string
 	var typBits string
 
-	for _, item := range tree.items {
-		if len(item.mode) == 5 {
-			typBits = item.mode[0:1]
+	for _, item := range tree.Items {
+		if len(item.Mode) == 5 {
+			typBits = item.Mode[0:1]
 		} else {
-			typBits = item.mode[0:2]
+			typBits = item.Mode[0:2]
 		}
 
 		switch typBits {
@@ -30,13 +32,13 @@ func lsTree(repo Repo, ref string, recursive bool, prefix string)  {
 			case "10": typ = "blob"
 			case "12": typ = "blob"
 			case "16": typ = "commit"
-			default: fmt.Printf("weird tree leaf node, mode: %v path: %v\n", item.mode, item.path)
+			default: fmt.Printf("weird tree leaf node, mode: %v path: %v\n", item.Mode, item.Path)
 		}
 
 		if recursive && typ == "tree" {
-			lsTree(repo, item.sha, recursive, path.Join(prefix, item.path))
+			lsTree(repo, item.Sha, recursive, path.Join(prefix, item.Path))
 		} else {
-			fmt.Printf("%06s %v %v\t%v\n", item.mode, typ, sha, path.Join(prefix, item.path))
+			fmt.Printf("%06s %v %v\t%v\n", item.Mode, typ, sha, path.Join(prefix, item.Path))
 		}
 	}
 }
@@ -49,7 +51,7 @@ var lsTreeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		recursive, _ := cmd.Flags().GetBool("recursive")
 
-		repo := RepoFind(".", true)
+		repo := utils.RepoFind(".", true)
 		lsTree(repo, args[0], recursive, "")
 	},
 }
