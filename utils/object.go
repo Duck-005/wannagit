@@ -7,15 +7,21 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 )
 
 func ObjectRead(repo Repo, sha string) GitObject {
 	path, err := RepoFile(repo, false, "objects", sha[:2], sha[2:])
-	ErrorHandler("couldn't fetch object file", err)
+	if err != nil {
+		ErrorHandler("couldn't fetch object file", err)
+		return nil
+	}
 
 	if stat, _ := os.Stat(path); !stat.Mode().IsRegular() {
 		fmt.Printf("Not a valid object file: %v", sha)
+		return nil
 	} 
 
 	file, err := os.Open(path)
@@ -67,6 +73,7 @@ func ObjectRead(repo Repo, sha string) GitObject {
 
 		default: fmt.Printf("Unknown type format %v for object %v", format, sha)
 	}
+	
 	obj.Deserialize(string(rawSlice[nullIdx+1:]))
 	return obj
 }
@@ -95,4 +102,102 @@ func ObjectWrite(obj GitObject, repo Repo) string {
 	}
 
 	return sha
+}
+
+func objectResolve(repo Repo, name string) []string{
+	// resolves HEAD refs, short, long hashes, tags, branches, remote branches.
+	hashRE := "^[0-9A-Fa-f]{4,40}$"
+	var candidates []string 
+
+	if strings.TrimSpace(name) == "" {
+		return []string{""}
+	}
+
+	if name == "HEAD" {
+		return []string{ResolveRef(repo, "HEAD")}
+	}
+
+	if matched, _ := regexp.MatchString(hashRE, name); matched {
+		name = strings.ToLower(name)
+		prefix := name[0:2]
+
+		path, err := RepoDir(repo, false, "objects", prefix)
+		ErrorHandler("couldn't resolve tag object file", err)
+
+		if path != "" {
+			rem := name[2:]
+
+			entries, err := os.ReadDir(path)
+			ErrorHandler("couldn't read the ref directory", err)
+
+			for _, entry := range entries {
+				if strings.HasPrefix(entry.Name(), rem) {
+					candidates = append(candidates, prefix + entry.Name())
+				}
+			}
+		}
+
+		asTag := ResolveRef(repo, "refs/tags/" + name)
+		if asTag != "" {
+			candidates = append(candidates, asTag)
+		}
+
+		asBranch := ResolveRef(repo, "refs/heads/" + name)
+		if asBranch != "" {
+			candidates = append(candidates, asBranch)
+		}
+
+		asRemoteBranch := ResolveRef(repo, "refs/remotes/" + name)
+		if asRemoteBranch != "" {
+			candidates = append(candidates, asRemoteBranch)
+		}
+
+		return candidates
+	}
+
+	return []string{""}
+}
+
+func ObjectFind(repo Repo, name string, objectType string, follow bool) string {
+	shas := objectResolve(repo, name)
+
+	if shas[0] == "" {
+		panic("No such reference: " + shas[0])
+	}
+
+	if len(shas) > 1 {
+		fmt.Printf("Ambiguous reference %v: candidates are:\n", name)
+		for _, sha := range shas {
+			fmt.Printf("%s", sha + "\n")
+		}
+		panic("")
+	}
+	
+	sha := shas[0]
+
+	if objectType == "" {
+		return sha
+	}
+
+	for {
+		obj := ObjectRead(repo, sha)
+
+		if obj.Format() == objectType {
+			return sha
+		}
+
+		if !follow {
+			return ""
+		}
+
+		if obj.Format() == "tag" {
+			tag := obj.(*GitTag)
+			sha = tag.GetData()["object"][0]
+		} else if obj.Format() == "commit" && objectType == "tree"{
+			commit := obj.(*GitCommit)
+			sha = commit.GetData()["tree"][0]
+		} else {
+			return ""
+		}
+	}
 }

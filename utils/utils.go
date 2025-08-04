@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Repo struct {
@@ -53,7 +54,11 @@ func (b *GitTag) Deserialize(data string) {
 	b.format = "tag"
 }
 
-//--------------------------------------------------
+func (b *GitTag) GetData() map[string][]string {
+	return b.Data
+}
+
+// helper functions -------------------------------
 
 func RepoFind(path string, required bool) Repo {
 	path, _ = filepath.EvalSymlinks(path)
@@ -118,6 +123,27 @@ func RepoDir(repo Repo, mkdir bool, path ...string) (string, error) {
 		return dirPath, nil
 	}
 	return "", fmt.Errorf("error occurred")
+}
+
+func ResolveRef(repo Repo, ref string) string {
+	path, err := RepoFile(repo, false, ref)
+	ErrorHandler("", err)
+	
+	stat, err := os.Stat(path)
+	if err != nil || !stat.Mode().IsRegular() {
+		return ""
+	}
+
+	dataSlice, err := os.ReadFile(path)
+	ErrorHandler("couldn't read ref file", err)
+
+	data := strings.TrimSpace(string(dataSlice))
+
+	if strings.HasPrefix(data, "ref: ") {
+		return ResolveRef(repo, data[5:])
+	} 
+
+	return data
 }
 
 func ErrorHandler(customMsg string, err error) {

@@ -56,7 +56,7 @@ var logCmd = &cobra.Command{
 		fmt.Print("digraph wannagitLog{\n")
 		fmt.Print("	node[shape=rect]")
 
-		logGraphviz(repo, ObjectFind(repo, args[0], "", false), make(map[string]bool))
+		logGraphviz(repo, utils.ObjectFind(repo, args[0], "", false), make(map[string]bool))
 
 		fmt.Print("}")
 	},

@@ -9,7 +9,7 @@ import (
 )
 
 func lsTree(repo utils.Repo, ref string, recursive bool, prefix string)  {
-	sha := ObjectFind(repo, ref, "tree", false)
+	sha := utils.ObjectFind(repo, ref, "tree", true)
 	obj := utils.ObjectRead(repo, sha)
 
 	tree, ok := obj.(*utils.GitTree)

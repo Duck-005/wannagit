@@ -4,32 +4,10 @@ import (
 	"os"
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"github.com/Duck-005/wannagit/utils"
 	"github.com/spf13/cobra"
 )
-
-func resolveRef(repo utils.Repo, ref string) string {
-	path, err := utils.RepoFile(repo, false, ref)
-	utils.ErrorHandler("", err)
-
-	stat, err := os.Stat(path)
-	if err != nil || !stat.Mode().IsRegular() {
-		return ""
-	}
-
-	dataSlice, err := os.ReadFile(path)
-	utils.ErrorHandler("couldn't read ref file", err)
-
-	data := strings.TrimSpace(string(dataSlice))
-
-	if strings.HasPrefix(data, "ref: ") {
-		return resolveRef(repo, data[5:])
-	} 
-
-	return data
-}
 
 func listRef(repo utils.Repo, path string) map[string]any {
 	var err error
@@ -54,7 +32,7 @@ func listRef(repo utils.Repo, path string) map[string]any {
 		if entry.IsDir() {
 			refMap[entry.Name()] = listRef(repo, relativePath)
 		} else {
-			refMap[entry.Name()] = resolveRef(repo, relativePath)
+			refMap[entry.Name()] = utils.ResolveRef(repo, relativePath)
 		}
 	}
 

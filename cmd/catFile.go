@@ -6,13 +6,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/Duck-005/wannagit/utils"
 )
-
-func ObjectFind(repo utils.Repo, name string, objectType string, follow bool) string {
-	if objectType == "" {
-		objectType = "blob"
-	}
-	return name
-}
 	
 var catFileCmd = &cobra.Command{
 	Use:   "catFile TYPE OBJECT_HASH",
@@ -25,7 +18,7 @@ var catFileCmd = &cobra.Command{
 		}
 
 		repo := utils.RepoFind(".", true)
-		obj := utils.ObjectRead(repo, ObjectFind(repo, args[1], args[0], true))
+		obj := utils.ObjectRead(repo, utils.ObjectFind(repo, args[1], args[0], true))
 
 		if obj == nil {
 			return

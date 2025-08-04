@@ -9,7 +9,7 @@ import (
 )
 
 func tagCreate(repo utils.Repo, name string, ref string, createObject bool) {
-	sha := ObjectFind(repo, ref, "", true)
+	sha := utils.ObjectFind(repo, ref, "", true)
 
 	if createObject {
 		tag := &utils.GitTag{}
