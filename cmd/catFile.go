@@ -24,7 +24,7 @@ var catFileCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Printf(obj.Serialize())
+		fmt.Printf("%s", obj.Serialize())
 	},
 }
 
