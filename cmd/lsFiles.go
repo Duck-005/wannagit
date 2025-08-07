@@ -41,7 +41,7 @@ var lsFilesCmd = &cobra.Command{
 					time.Unix(int64(entry.Mtime[0]), int64(entry.Mtime[1])),
 				)
 				fmt.Printf("	device: %v, inode: %v", entry.Dev, entry.Ino)
-				// fmt.Printf("	flags: stage=%v assumeValid=%v", entry.FlagStage, entry.FlagAssumeValid)
+				fmt.Printf("	flags: stage=%v assumeValid=%v", entry.Stage, entry.AssumeValid)
 			}
 		}
 	},
