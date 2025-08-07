@@ -8,9 +8,9 @@ import (
 )
 
 type Repo struct {
-	Worktree string;
-	Gitdir string;
-	Conf string;
+	Worktree 	string
+	Gitdir 		string
+	Conf 		string
 }
 
 type GitObject interface {
@@ -20,8 +20,8 @@ type GitObject interface {
 }
 
 type BaseGitObject struct {
-	data string
-	format string
+	data 		string
+	format 		string
 }
 
 func (b *BaseGitObject) Format() string {
@@ -56,6 +56,29 @@ func (b *GitTag) Deserialize(data string) {
 
 func (b *GitTag) GetData() map[string][]string {
 	return b.Data
+}
+
+// GitIndexEntry and GitIndex ----------------------------------
+
+type GitIndex struct {
+	Version 	uint32
+	Entries 	[]GitIndexEntry
+}
+
+type GitIndexEntry struct {
+	Ctime            [2]uint32 // metadata modified timestamp in (seconds, nanoseconds)
+	Mtime            [2]uint32 // file modified timestamp in (seconds, nanoseconds)
+	Dev              uint32 // device ID containing this file
+	Ino              uint32 // the file's inode number
+	ModeType         uint16 // the object type, either b1000 (regular), b1010 (symlink), b1110 (gitlink)
+	ModePerms        uint16 // file permissions
+	UID              uint32 // user ID of the owner
+	GID              uint32 // group ID of the owner
+	Size             uint32 // size of this object in bytes
+	SHA              string // object's SHA
+	AssumeValid      bool
+	Stage            uint16
+	Name             string // full path of this object (name)
 }
 
 // helper functions -------------------------------
@@ -105,7 +128,7 @@ func repoPath(repo Repo, path ...string) string {
 	return filepath.Join(repo.Gitdir, filepath.Join(path...))
 }
 
-// makes the directory if it does'nt exist
+// makes the directory if it doesn't exist
 func RepoDir(repo Repo, mkdir bool, path ...string) (string, error) {
 	
 	dirPath := repoPath(repo, path...)
