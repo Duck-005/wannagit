@@ -81,6 +81,18 @@ type GitIndexEntry struct {
 	Name             string // full path of this object (name)
 }
 
+// GitIgnore and Rule --------------------------------------
+
+type Rule struct {
+	Path string
+	IsIgnored bool
+}
+
+type GitIgnore struct {
+	Absolute [][]Rule
+	Scoped map[string][]Rule
+}
+
 // helper functions -------------------------------
 
 func RepoFind(path string, required bool) Repo {

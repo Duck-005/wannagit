@@ -15,14 +15,18 @@ var lsFilesCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		repo := utils.RepoFind(".", true)
 
-		index, _ := utils.IndexRead(repo)
+		index, err := utils.IndexRead(repo)
+		if err != nil {
+			fmt.Print(err)
+		}
+
 		if index.Version == 0 {
 			return 
 		}
 		
 		isVerbose, _ := cmd.Flags().GetBool("verbose")
 		if isVerbose {
-			fmt.Printf("Index file format v%v, containing %v entries", index.Version, len(index.Entries))
+			fmt.Printf("Index file format v%v, containing %v entries\n", index.Version, len(index.Entries))
 		}
 
 		for _, entry := range index.Entries {
@@ -34,14 +38,14 @@ var lsFilesCmd = &cobra.Command{
 					0b1110: "git link",
 				}[entry.ModeType]
 
-				fmt.Printf("	%v with perms: %o", entryType, entry.ModePerms)
-				fmt.Printf("	on blob: %v", entry.SHA)
-				fmt.Printf("	created: %v, modified: %v", 
+				fmt.Printf("	%v with perms: %o\n", entryType, entry.ModePerms)
+				fmt.Printf("	on blob: %v\n", entry.SHA)
+				fmt.Printf("	created: %v, modified: %v\n", 
 					time.Unix(int64(entry.Ctime[0]), int64(entry.Ctime[1])),
 					time.Unix(int64(entry.Mtime[0]), int64(entry.Mtime[1])),
 				)
-				fmt.Printf("	device: %v, inode: %v", entry.Dev, entry.Ino)
-				fmt.Printf("	flags: stage=%v assumeValid=%v", entry.Stage, entry.AssumeValid)
+				fmt.Printf("	device: %v, inode: %v\n", entry.Dev, entry.Ino)
+				fmt.Printf("	flags: stage=%v assumeValid=%v\n", entry.Stage, entry.AssumeValid)
 			}
 		}
 	},
