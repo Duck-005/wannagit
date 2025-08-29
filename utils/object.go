@@ -86,6 +86,10 @@ func ObjectWrite(obj GitObject, repo Repo) string {
 	hash := sha1.Sum(result)
 	sha := fmt.Sprintf("%x", hash[:])
 
+	if (repo == Repo{}) {
+		return sha
+	}
+
 	if repo.Gitdir == "" {
 		return sha
 	}
