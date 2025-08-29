@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"math"
 	"os"
@@ -119,4 +120,84 @@ func IndexRead(repo Repo) (*GitIndex, error) {
 		Version: version,
 		Entries: entries,
 	}, nil
+}
+
+func intToBytes[T ~uint16 | ~uint32 | ~uint64](v T) []byte {
+	var buf []byte
+	switch any(v).(type) {
+		case uint16:
+			buf = make([]byte, 2)
+			binary.BigEndian.PutUint16(buf, uint16(v))
+		case uint32:
+			buf = make([]byte, 4)
+			binary.BigEndian.PutUint32(buf, uint32(v))
+	}
+
+	return buf
+}
+
+func IndexWrite(repo Repo, index GitIndex) {
+	filePath, _ := RepoFile(repo, false, "index")
+	file, _ := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	defer file.Close()
+
+	var data []byte
+
+	data = append(data, []byte("DIRC")...)
+
+	data = append(data, intToBytes(index.Version)...)
+
+	data = append(data, intToBytes(uint32(len(index.Entries)))...)
+
+	idx := 0
+	for _, e := range index.Entries {
+		data = append(data, intToBytes(e.Ctime[0])...)
+		data = append(data, intToBytes(e.Ctime[1])...)
+
+		data = append(data, intToBytes(e.Mtime[0])...)
+		data = append(data, intToBytes(e.Mtime[1])...)
+
+		data = append(data, intToBytes(e.Dev)...)
+		data = append(data, intToBytes(e.Ino)...)
+
+		mode := (e.ModeType << 12) | e.ModePerms
+		data = append(data, intToBytes(mode)...)
+
+		data = append(data, intToBytes(e.UID)...)
+		data = append(data, intToBytes(e.GID)...)
+
+		data = append(data, intToBytes(e.Size)...)
+		shaHex, _ := hex.DecodeString(e.SHA) 
+		data = append(data, shaHex...)
+
+		assumeValid := uint16(0)
+		if e.AssumeValid {
+    		assumeValid = 1 << 15
+		}
+
+		var nameLength uint16
+		nameBytes := []byte(e.Name)
+		bytesLength := len(nameBytes)
+		if bytesLength >= 0xFFF {
+			nameLength = 0xFFF
+		} else {
+			nameLength = uint16(bytesLength)
+		}
+
+		data = append(data, intToBytes(assumeValid | e.Stage | nameLength)...)
+		data = append(data, nameBytes...)
+
+		data = append(data, 0)
+
+		idx += 62 + len(nameBytes) + 1
+
+		if idx % 8 != 0 {
+			padding := 8 - (idx % 8)
+			data = append(data, make([]byte, padding)...)
+			idx += padding
+		}
+	}
+
+	_, err := file.Write(data)
+	ErrorHandler("couldn't write index file", err)
 }
