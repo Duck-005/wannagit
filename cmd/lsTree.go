@@ -38,7 +38,7 @@ func lsTree(repo utils.Repo, ref string, recursive bool, prefix string)  {
 		if recursive && typ == "tree" {
 			lsTree(repo, item.Sha, recursive, path.Join(prefix, item.Path))
 		} else {
-			fmt.Printf("%06s %v %v\t%v\n", item.Mode, typ, sha, path.Join(prefix, item.Path))
+			fmt.Printf("%06s %v %v\t%v\n", item.Mode, typ, item.Sha, path.Join(prefix, item.Path))
 		}
 	}
 }
