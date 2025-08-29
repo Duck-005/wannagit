@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -74,7 +75,7 @@ func gitignoreRead(repo utils.Repo) (*utils.GitIgnore, error){
 		return lines, nil
 	}
 
-	repoFile := filepath.Join(repo.Gitdir, "info", "exclude")
+	repoFile := path.Join(repo.Gitdir, "info", "exclude")
 	lines, err := readLines(repoFile)
 	if err != nil {
 		return nil, err
@@ -90,7 +91,7 @@ func gitignoreRead(repo utils.Repo) (*utils.GitIgnore, error){
 		if err != nil {
 			return nil, fmt.Errorf("failed to get home user directory: %w", err)
 		}
-		configHome = filepath.Join(homeDir, ".config")
+		configHome = path.Join(homeDir, ".config")
 	}
 
 	globalFile := filepath.Join(configHome, "git", "ignore")
