@@ -122,7 +122,7 @@ func cmdStatusIndexWorktree(repo utils.Repo, index utils.GitIndex) ([]string, er
 			fmt.Printf("  deleted:  %v\n", entry.Name)
 		} else {
 			mtimeNs := entry.Mtime[0] * 10^9 + entry.Mtime[1]
-			if stat.ModTime().UnixNano() != int64(mtimeNs) {
+			if int64(stat.ModTime().Nanosecond()) != int64(mtimeNs) {
 				file, _ := os.Open(fullPath)
 				newSha := objectHash(utils.Repo{}, file, "blob")
 				defer file.Close()
