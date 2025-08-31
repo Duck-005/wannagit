@@ -1,4 +1,5 @@
 .wannagit/
-*.exe
-*.out
-*.dot
+.exe
+.out
+.dot
+.sh
