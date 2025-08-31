@@ -28,7 +28,7 @@ func lsTree(repo utils.Repo, ref string, recursive bool, prefix string)  {
 		}
 
 		switch typBits {
-			case "4": typ = "tree"
+			case "04": typ = "tree"
 			case "10": typ = "blob"
 			case "12": typ = "blob"
 			case "16": typ = "commit"

@@ -15,6 +15,7 @@ type GitTree struct {
 }
 
 func (b *GitTree) Serialize() string {
+	b.format = "tree"
 	return string(treeSerialize(b)) 
 	// returns bytes in the form of string NOT READABLE
 }
@@ -86,9 +87,9 @@ func ParseTree(raw []byte) []GitTreeLeaf {
 
 func treeSerialize(obj *GitTree) []byte {
 	sort.Slice(obj.Items, func(i, j int) bool {
-		return obj.Items[i].Path < obj.Items[j].Path
+		return bytes.Compare([]byte(obj.Items[i].Path), []byte(obj.Items[j].Path)) < 0
 	})
-
+	
 	var ret []byte
 	for _, node := range obj.Items {
 		entry := fmt.Sprintf("%s %s", node.Mode, node.Path)

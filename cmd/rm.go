@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -32,7 +31,7 @@ func rm(repo utils.Repo, paths []string, skipMissing bool, del bool) {
 	var remove []string // list of removed paths, which is used to physically remove paths from filesystem
 
 	for _, e := range index.Entries {
-		fullPath := path.Join(repo.Worktree, e.Name)
+		fullPath := filepath.Join(repo.Worktree, e.Name)
 
 		if _, ok := abspaths[fullPath]; ok {
 			remove = append(remove, fullPath)

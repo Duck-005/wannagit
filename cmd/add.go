@@ -38,7 +38,8 @@ func add(repo utils.Repo, paths []string, del bool, skipMissing bool) {
 			}
 		}
 		relPath, _ := filepath.Rel(repo.Worktree, abspath)
-		cleanPaths = append(cleanPaths, pair{abspath: abspath, relPath: relPath})
+		relPathGit := strings.ReplaceAll(relPath, string(filepath.Separator), "/")
+		cleanPaths = append(cleanPaths, pair{abspath: abspath, relPath: relPathGit})
 	}
 
 	index, err := utils.IndexRead(repo)

@@ -71,7 +71,9 @@ func ObjectRead(repo Repo, sha string) GitObject {
 		case "tag": obj = &GitTag{}
 		case "blob": obj = &GitBlob{}
 
-		default: fmt.Printf("Unknown type format %v for object %v", format, sha)
+		default: 
+			fmt.Printf("Unknown type format %v for object %v", format, sha)
+			return nil
 	}
 	
 	obj.Deserialize(string(rawSlice[nullIdx+1:]))
@@ -82,7 +84,6 @@ func ObjectWrite(obj GitObject, repo Repo) string {
 	data := obj.Serialize()
 
 	result := []byte(obj.Format() + " " + strconv.Itoa(len(data)) + "\x00" + string(data))
-
 	hash := sha1.Sum(result)
 	sha := fmt.Sprintf("%x", hash[:])
 

@@ -14,6 +14,7 @@ type GitCommit struct {
 }
 
 func (b *GitCommit) Serialize() string {
+	b.format = "commit"
 	return string(SerializeKVLM(b.Data))
 }
 

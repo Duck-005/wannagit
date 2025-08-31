@@ -35,6 +35,7 @@ type GitBlob struct {
 }
 
 func (b *GitBlob) Serialize() string {
+	b.format = "blob"
 	return b.data
 }
 
