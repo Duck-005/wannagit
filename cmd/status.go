@@ -72,7 +72,7 @@ func cmdStatusHeadIndex(repo utils.Repo, index utils.GitIndex) {
 	for _, entry := range index.Entries {
 		if sha, ok := head[entry.Name]; ok{
 			if sha != entry.SHA {
-				fmt.Printf("  modified:%v\n", entry.Name)
+				fmt.Printf("  modified:  %v\n", entry.Name)
 			}
 			delete(head, entry.Name)
 		} else {
@@ -98,8 +98,9 @@ func cmdStatusIndexWorktree(repo utils.Repo, index utils.GitIndex) ([]string, er
 		if err != nil {
 			return err
 		}
+		rel, _ := filepath.Rel(repo.Worktree, path)
 		
-		if path == repo.Gitdir || strings.HasPrefix(path, gitignorePrefix) || strings.HasPrefix(path, ".git") {
+		if path == repo.Gitdir || strings.HasPrefix(rel, gitignorePrefix) || strings.HasPrefix(rel, ".git") {
 			if d.IsDir() {
 				return filepath.SkipDir
 			}

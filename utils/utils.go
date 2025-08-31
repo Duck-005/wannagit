@@ -96,7 +96,7 @@ type GitIgnore struct {
 // helper functions -------------------------------
 
 func RepoFind(path string, required bool) Repo {
-	path, _ = filepath.EvalSymlinks(path)
+	path, _ = filepath.Abs(path)
 
 	if stat, _ := os.Stat(filepath.Join(path, ".wannagit")); stat.IsDir() {
 		return Repo {

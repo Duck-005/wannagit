@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -23,8 +24,7 @@ func rm(repo utils.Repo, paths []string, skipMissing bool, del bool) {
 		if strings.HasPrefix(abspath, worktree) {
 			abspaths[abspath] = struct{}{}
 		} else {
-			fmt.Printf("cannot remove paths outside of worktree: %v %v", abspath, worktree)
-			return
+			fmt.Printf("cannot remove paths outside of worktree: %s", path)
 		}
 	}
 
@@ -32,7 +32,7 @@ func rm(repo utils.Repo, paths []string, skipMissing bool, del bool) {
 	var remove []string // list of removed paths, which is used to physically remove paths from filesystem
 
 	for _, e := range index.Entries {
-		fullPath := filepath.Join(repo.Worktree, e.Name)
+		fullPath := path.Join(repo.Worktree, e.Name)
 
 		if _, ok := abspaths[fullPath]; ok {
 			remove = append(remove, fullPath)
