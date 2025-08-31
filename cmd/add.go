@@ -20,7 +20,7 @@ func getCTime(path string) (int, int, error) {
 }
 
 func add(repo utils.Repo, paths []string, del bool, skipMissing bool) {
-	rm(repo, paths, false, true)
+	rm(repo, paths, true, false)
 
 	worktree := repo.Worktree + string(os.PathSeparator)
 
