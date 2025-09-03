@@ -1,18 +1,17 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
+	"gopkg.in/ini.v1"
 	"github.com/spf13/cobra"
 	"github.com/Duck-005/wannagit/utils"
 )
 
 func createRepo(repo utils.Repo) {
-	
 	if stat, err := os.Stat(repo.Worktree); err == nil {
 		if !stat.IsDir() {
 			fmt.Print("Not a directory\n")
@@ -53,27 +52,41 @@ func createRepo(repo utils.Repo) {
 	io.WriteString(f, "ref: refs/heads/main\n")
 	f.Close()
 
-	configData := defaultConfig()
-	
-	repoFile, _ = utils.RepoFile(repo, false, "config")
-	f, err = os.OpenFile(repoFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	io.WriteString(f, configData)
-	errorHandler(err)
-	
-	f.Close()
+	createDefaultConfig(repo)
 }
 
-func defaultConfig() string{
-	config := map[string] map[string]string{
-		"core": {
-			"repositoryformatversion": "0",
-			"filemode": "false",
-			"bare": "false",
-		},
+func createDefaultConfig(repo utils.Repo) {
+	inidata := ini.Empty()
+	sec, err := inidata.NewSection("core")
+	if err != nil {
+		utils.ErrorHandler("error writing config file", err)
+		return 
 	}
 
-	configData, _ := json.Marshal(config)
-	return string(configData)
+	_, err = sec.NewKey("repositoryformatversion", "0")
+	if err != nil {
+		utils.ErrorHandler("error writing config file", err)
+		return 
+	}
+
+	_, err = sec.NewKey("filemode", "false")
+	if err != nil {
+		utils.ErrorHandler("error writing config file", err)
+		return 
+	}
+
+	_, err = sec.NewKey("bare", "false")
+	if err != nil {
+		utils.ErrorHandler("error writing config file", err)
+		return 
+	}
+
+	config, _ := utils.RepoFile(repo, false, "config")
+	err = inidata.SaveTo(config)
+	if err != nil {
+		utils.ErrorHandler("error writing config file", err)
+		return 
+	}
 }
 
 var initCmd = &cobra.Command{

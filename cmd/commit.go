@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -11,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/ini.v1"
 	"github.com/Duck-005/wannagit/utils"
 	"github.com/spf13/cobra"
 )
@@ -53,7 +53,7 @@ func gitconfigRead() []string {
 	return configFiles
 }
 
-func gitconfigUserGet() string {
+func gitconfigUserGet(repo utils.Repo) string {
 	files := gitconfigRead()
 
 	var configPath string
@@ -63,30 +63,17 @@ func gitconfigUserGet() string {
 		}
 	}
 
-	raw, err := os.ReadFile(configPath)
+	config, _ := utils.RepoFile(repo, false, "config")
+	configData, err := ini.Load(config)
 	if err != nil {
-		fmt.Printf("error in reading config file: %v", configPath)
-		return "" 
+		utils.ErrorHandler(fmt.Sprintf("error reading config file: ", configPath), err)
+		return ""
 	}
-
-	var config map[string] map[string]string
-		
-	isValid := json.Valid(raw)
-	if isValid {
-		json.Unmarshal(raw, &config)
-	} else {
-		fmt.Printf("Invalid config file: %v", configPath)
-	}
-
-	if user, ok :=config["user"]; ok {
-		if name, ok := user["name"]; ok {
-			if email, ok := user["email"]; ok {
-				return fmt.Sprintf("%v <%v>", name, email)
-			}
-		}
-	}
-
-	return ""
+	
+	section := configData.Section("user")
+	name := section.Key("name").String()
+	email := section.Key("email").String()
+	return fmt.Sprintf("%v <%v>", name, email)
 }
 
 type treeEntry struct {
@@ -217,8 +204,7 @@ var commitCmd = &cobra.Command{
 			repo, 
 			tree,
 			utils.ObjectFind(repo, "HEAD", "commit", true),
-			// gitconfigUserGet(),
-			"aaa",
+			gitconfigUserGet(repo),
 			time.Now(),
 			message,
 		)
@@ -256,7 +242,7 @@ var commitCmd = &cobra.Command{
 			defer fd.Close()
 
 			fd.Write([]byte("\n")) 
-		}
+		}		
 	},
 }
 
