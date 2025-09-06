@@ -8,7 +8,11 @@ It is not intended for production use, but rather as a learning project to explo
 
 The code is riddled with bugs and random panics everywhere with error handling all over the place, so good luck! if you decide to contribute or use it anywhere else.
 
+Wannagit is primarily written for unix and windows. 
+
 ## Installation  
+
+Download and install go from [here](https://go.dev/doc/install)
 
 Clone the repository and build the binary:  
 
